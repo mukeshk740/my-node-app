@@ -62,7 +62,7 @@ pipeline {
 
                     # Pull the Docker image
                     docker pull ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_NAME}:${IMAGE_TAG}
-
+	            docker rm -f prism
                     # Run the Docker container
                     docker run -d --name prism --restart=unless-stopped ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_NAME}:${IMAGE_TAG}
                     #EOF

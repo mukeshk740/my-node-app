@@ -55,7 +55,7 @@ pipeline {
         
         stage('Deploy') {
             steps {
-                sshagent(credentials: ['ec2-ssh-key-for-ubuntu-user']) {
+                sshagent(credentials: ['ec2-ssh-key']) {
                     sh 'ssh -o StrictHostKeyChecking=no ubuntu@ec2-3-83-42-221.compute-1.amazonaws.com uptime'
                     sh 'ssh -o StrictHostKeyChecking=no ubuntu@ec2-3-83-42-221.compute-1.amazonaws.com '
                     sh 'docker pull ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_NAME}:${IMAGE_TAG}'

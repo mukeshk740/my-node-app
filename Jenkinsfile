@@ -57,8 +57,8 @@ pipeline {
                     echo "Deploying Docker container on remote server..."
 
                     # Login to AWS ECR on the remote server
-                    LOGIN_PASSWORD=$(aws ecr get-login-password --region ${AWS_REGION})
-                    echo $LOGIN_PASSWORD | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
+//                    LOGIN_PASSWORD=$(aws ecr get-login-password --region ${AWS_REGION})
+//                    echo $LOGIN_PASSWORD | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
 
                     # Pull the Docker image
                     docker pull ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_NAME}:${IMAGE_TAG}

@@ -63,8 +63,8 @@ pipeline {
         failure {
             echo 'Build or push failed.'
         }
-
     }
+	
 stage ('Deploy') {
     steps{
         sshagent(credentials : ['ec2-ssh-key-for-ubuntu-user']) {
@@ -76,3 +76,4 @@ stage ('Deploy') {
     }
 }
 }
+

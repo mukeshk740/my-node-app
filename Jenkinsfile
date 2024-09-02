@@ -7,12 +7,13 @@ pipeline {
         IMAGE_TAG = '2.0'
         AWS_CREDENTIALS_ID = 'prism-ecr-user' // Jenkins credential ID for AWS
         AWS_ACCOUNT_ID = '664418988179'
+        EC2_USER = 'ubuntu'            // Replace with your EC2 user
+        EC2_HOST = 'ec2-3-83-42-221.compute-1.amazonaws.com' // Replace with your EC2 hostname or IP
     }
 
     stages {
         stage('Checkout Code') {
             steps {
-                // Checkout your code from Git repository
                 checkout scm
             }
         }
@@ -20,7 +21,6 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Build the Docker image
                     sh "docker build -t ${ECR_REPO_NAME}:${IMAGE_TAG} ."
                 }
             }
@@ -29,10 +29,8 @@ pipeline {
         stage('Login to AWS ECR') {
             steps {
                 script {
-                    // Login to AWS ECR using the credentials stored in Jenkins
                     withCredentials([aws(accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'prism-ecr-user', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
                         sh '''
-                        # Login to AWS ECR
                         LOGIN_PASSWORD=$(aws ecr get-login-password --region ${AWS_REGION})
                         echo $LOGIN_PASSWORD | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
                         '''
@@ -44,10 +42,7 @@ pipeline {
         stage('Tag and Push Docker Image') {
             steps {
                 script {
-                    // Tag the Docker image
                     sh "docker tag ${ECR_REPO_NAME}:${IMAGE_TAG} ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_NAME}:${IMAGE_TAG}"
-                    
-                    // Push the Docker image to ECR
                     sh "docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_NAME}:${IMAGE_TAG}"
                 }
             }
@@ -56,20 +51,22 @@ pipeline {
         stage('Deploy') {
             steps {
                 sshagent(credentials: ['ec2-ssh-key']) {
-                    sh 'ssh -o StrictHostKeyChecking=no ubuntu@ec2-3-83-42-221.compute-1.amazonaws.com uptime'
-                    sh 'ssh -o StrictHostKeyChecking=no ubuntu@ec2-3-83-42-221.compute-1.amazonaws.com'
+                    sh '''
+                    ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} << EOF
+                    # Commands to be executed on the remote server
+                    echo "Deploying Docker container on remote server..."
                     
-                    // Login to AWS ECR using the credentials stored in Jenkins
-                    withCredentials([aws(accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'prism-ecr-user', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
-                        sh '''
-                        # Login to AWS ECR
-                        LOGIN_PASSWORD=$(aws ecr get-login-password --region ${AWS_REGION})
-                        echo $LOGIN_PASSWORD | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
-                        '''
-                    }
-
-                    sh 'docker pull ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_NAME}:${IMAGE_TAG}'
-                    sh 'docker run -d --name prism --restart=unless-stopped ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_NAME}:${IMAGE_TAG}'
+                    # Login to AWS ECR on the remote server
+                    LOGIN_PASSWORD=$(aws ecr get-login-password --region ${AWS_REGION})
+                    echo $LOGIN_PASSWORD | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
+                    
+                    # Pull the Docker image
+                    docker pull ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_NAME}:${IMAGE_TAG}
+                    
+                    # Run the Docker container
+                    docker run -d --name prism --restart=unless-stopped  -p 3000:3000 ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_NAME}:${IMAGE_TAG}
+                    EOF
+                    '''
                 }
             }
         }
@@ -84,3 +81,4 @@ pipeline {
         }
     }
 }
+

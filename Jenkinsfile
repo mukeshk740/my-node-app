@@ -4,7 +4,7 @@ pipeline {
     environment {
         AWS_REGION = 'us-east-1'        // Replace with your AWS region
         ECR_REPO_NAME = 'prism'        // Replace with your ECR repository name
-        IMAGE_TAG = 'latest'
+//        IMAGE_TAG = 'latest'
         AWS_CREDENTIALS_ID = 'prism-ecr-user' // Jenkins credential ID for AWS
 		AWS_ACCOUNT_ID = '664418988179'
     }
@@ -14,6 +14,21 @@ pipeline {
             steps {
                 // Checkout your code from Git repository
                 checkout scm
+            }
+        }
+		
+		 stage('Load Environment Variables') {
+            steps {
+                script {
+                    // Load environment variables from .env file
+                    def envVars = readFile('.env').split('\n')
+                    envVars.each { line ->
+                        def (key, value) = line.split('=')
+                        if (key == 'IMAGE_TAG') {
+                            env.IMAGE_TAG = value.trim()
+                        }
+                    }
+                }
             }
         }
         

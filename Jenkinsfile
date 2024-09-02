@@ -4,15 +4,16 @@ pipeline {
     environment {
         AWS_REGION = 'us-east-1'        // Replace with your AWS region
         ECR_REPO_NAME = 'prism'        // Replace with your ECR repository name
-        IMAGE_TAG = '2.0'
+        IMAGE_TAG = 'latest'
         AWS_CREDENTIALS_ID = 'prism-ecr-user' // Jenkins credential ID for AWS
+		AWS_ACCOUNT_ID = '664418988179'
     }
 
     stages {
         stage('Checkout Code') {
             steps {
                 // Checkout your code from Git repository
-                git branch: 'main', url: 'https://github.com/mukeshk740/my-node-app.git'
+                checkout scm
             }
         }
         

@@ -45,9 +45,8 @@ pipeline {
             steps {
                 script {
                     // Login to AWS ECR using the credentials stored in Jenkins
-                    //withCredentials([usernamePassword(credentialsId: "${AWS_CREDENTIALS_ID}", passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
-					  withCredentials([aws(accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'prism-ecr-user', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')])  {
-                        sh '''	
+                    withCredentials([usernamePassword(credentialsId: "${AWS_CREDENTIALS_ID}", passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
+                        sh '''
                         # Login to AWS ECR
                         LOGIN_PASSWORD=$(aws ecr get-login-password --region ${AWS_REGION})
                         echo $LOGIN_PASSWORD | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
@@ -79,4 +78,3 @@ pipeline {
         }
     }
 }
-
